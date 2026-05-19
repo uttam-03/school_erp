@@ -1,0 +1,92 @@
+{% extends 'shared/base.html' %}
+{% block title %}Results{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h3>Results</h3>
+  {% if is_admin or is_teacher %}
+  <a href="{% url 'results:create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Enter Results
+  </a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          {% if not is_student %}<th>Student</th>{% endif %}
+          <th>Exam</th>
+          <th>Subject</th>
+          <th>Marks</th>
+          <th>Percentage</th>
+          <th>Grade</th>
+          <th>Status</th>
+          {% if is_admin or is_teacher %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for result in page_obj %}
+        <tr>
+          {% if not is_student %}
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img src="{{ result.student.user.get_profile_image_url }}" class="avatar-sm avatar" alt="">
+              <div>
+                <div class="fw-500" style="font-size:13px">{{ result.student.user.get_full_name }}</div>
+                <div style="font-size:11px;color:var(--text-muted)">{{ result.student.admission_number }}</div>
+              </div>
+            </div>
+          </td>
+          {% endif %}
+          <td>
+            <div class="fw-500" style="font-size:13px">{{ result.exam.name }}</div>
+            <div style="font-size:11px;color:var(--text-muted)">{{ result.exam.get_exam_type_display }}</div>
+          </td>
+          <td style="font-size:13px">{{ result.subject.name }}</td>
+          <td style="font-size:13px" class="fw-600">{{ result.marks_obtained }} / {{ result.total_marks }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress" style="width:60px;height:5px">
+                <div class="progress-bar {% if result.percentage >= 75 %}bg-success{% elif result.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                     style="width:{{ result.percentage }}%"></div>
+              </div>
+              <span style="font-size:12px">{{ result.percentage }}%</span>
+            </div>
+          </td>
+          <td><span class="grade-badge grade-{{ result.grade }}">{{ result.grade }}</span></td>
+          <td>
+            <span class="badge {% if result.is_pass %}badge-present{% else %}badge-absent{% endif %}">
+              {% if result.is_pass %}Pass{% else %}Fail{% endif %}
+            </span>
+          </td>
+          {% if is_admin or is_teacher %}
+          <td>
+            <a href="{% url 'results:edit' result.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center py-5 text-muted">
+            <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>No results found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card-body border-top py-3">
+    <nav><ul class="pagination pagination-sm mb-0 justify-content-center">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a></li>{% endif %}
+      {% for num in page_obj.paginator.page_range %}<li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>{% endfor %}
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a></li>{% endif %}
+    </ul></nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'shared/base.html' %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h3>My Profile</h3>
+</div>
+
+<div class="row g-4">
+  <!-- Profile Card -->
+  <div class="col-lg-4">
+    <div class="card text-center">
+      <div class="card-body py-4">
+        <div class="position-relative d-inline-block mb-3">
+          <img src="{{ user.get_profile_image_url }}" id="profileImagePreview"
+               class="avatar-xl rounded-circle border" style="border-width:3px!important;border-color:var(--primary)!important;object-fit:cover" alt="Profile">
+        </div>
+        <h5 class="mb-1">{{ user.get_full_name }}</h5>
+        <span class="badge-role-{{ user.role }} sidebar-role">{{ user.get_role_display }}</span>
+        <div class="text-muted mt-2" style="font-size:13px">{{ user.email }}</div>
+        {% if user.phone %}<div class="text-muted" style="font-size:13px"><i class="bi bi-phone me-1"></i>{{ user.phone }}</div>{% endif %}
+
+        <hr>
+        <div class="row text-center g-2">
+          <div class="col-4">
+            <div class="fw-700 fs-5" style="color:var(--primary)">
+              {% if user.is_student_role %}{{ user.student_profile.get_attendance_percentage }}%
+              {% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px;color:var(--text-muted)">Attendance</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-700 fs-5" style="color:var(--success)">
+              {% if user.is_student_role %}{{ user.student_profile.results.count }}
+              {% elif user.is_teacher %}{{ user.teacher_profile.assigned_classes.count }}
+              {% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px;color:var(--text-muted)">{% if user.is_teacher %}Classes{% else %}Results{% endif %}</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-700 fs-5" style="color:var(--warning)">
+              {{ user.date_joined|date:"Y" }}
+            </div>
+            <div style="font-size:11px;color:var(--text-muted)">Joined</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Form -->
+  <div class="col-lg-8">
+    <!-- Nav Tabs -->
+    <ul class="nav nav-tabs mb-4" style="border-color:var(--border)">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#tab-profile" style="font-size:14px">
+          <i class="bi bi-person me-1"></i>Personal Info
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-password" style="font-size:14px">
+          <i class="bi bi-lock me-1"></i>Change Password
+        </a>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- Profile Tab -->
+      <div class="tab-pane fade show active" id="tab-profile">
+        <div class="card">
+          <div class="card-header"><h6 class="card-title">Update Profile</h6></div>
+          <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">First Name</label>
+                  <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone</label>
+                  <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Date of Birth</label>
+                  <input type="date" name="date_of_birth" class="form-control"
+                    value="{% if user.date_of_birth %}{{ user.date_of_birth|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Gender</label>
+                  <select name="gender" class="form-select">
+                    <option value="">Select gender</option>
+                    <option value="M" {% if user.gender == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if user.gender == 'F' %}selected{% endif %}>Female</option>
+                    <option value="O" {% if user.gender == 'O' %}selected{% endif %}>Other</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Profile Photo</label>
+                  <input type="file" name="profile_image" class="form-control" accept="image/*">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Address</label>
+                  <textarea name="address" class="form-control" rows="2">{{ user.address }}</textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Bio</label>
+                  <textarea name="bio" class="form-control" rows="3" placeholder="Tell us about yourself...">{{ user.bio }}</textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check2 me-1"></i>Save Changes
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password Tab -->
+      <div class="tab-pane fade" id="tab-password">
+        <div class="card">
+          <div class="card-header"><h6 class="card-title">Change Password</h6></div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="change_password" value="1">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Current Password</label>
+                  <input type="password" name="old_password" class="form-control" required>
+                  {% if password_form.old_password.errors %}<div class="text-danger" style="font-size:12px">{{ password_form.old_password.errors|join:", " }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">New Password</label>
+                  <input type="password" name="new_password1" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Confirm New Password</label>
+                  <input type="password" name="new_password2" class="form-control" required>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-lock-fill me-1"></i>Update Password
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

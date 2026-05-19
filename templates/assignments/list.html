@@ -1,0 +1,37 @@
+{% extends 'shared/base.html' %}
+{% block title %}Assignments{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h3>Assignments</h3>
+  {% if is_admin or is_teacher %}<a href="{% url 'assignments:create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>New Assignment</a>{% endif %}
+</div>
+<div class="row g-3">
+  {% for a in assignments %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="badge" style="background:rgba(79,70,229,0.1);color:var(--primary)">{{ a.subject.name }}</span>
+          {% if a.is_overdue %}<span class="badge badge-absent">Overdue</span>{% endif %}
+        </div>
+        <h6 class="fw-600 mb-1">{{ a.title }}</h6>
+        <div style="font-size:12px;color:var(--text-muted)" class="mb-3">{{ a.assigned_class }} · {{ a.teacher.user.get_full_name }}</div>
+        <div class="row g-2 mb-3">
+          <div class="col-6"><div style="font-size:11px;color:var(--text-muted)">DUE DATE</div><div style="font-size:13px;font-weight:500" class="{% if a.is_overdue %}text-danger{% endif %}">{{ a.due_date|date:"M d, Y" }}</div></div>
+          <div class="col-6"><div style="font-size:11px;color:var(--text-muted)">MAX MARKS</div><div style="font-size:13px;font-weight:500">{{ a.max_marks }}</div></div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'assignments:detail' a.pk %}" class="btn btn-sm btn-outline-primary flex-1">View Details</a>
+          {% if is_admin or is_teacher %}
+          <a href="{% url 'assignments:edit' a.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+          <a href="{% url 'assignments:delete' a.pk %}" class="btn btn-sm btn-outline-danger" data-confirm="Delete this assignment?"><i class="bi bi-trash"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><div class="card"><div class="card-body text-center py-5 text-muted"><i class="bi bi-file-earmark-text fs-1 d-block mb-2"></i>No assignments yet.</div></div></div>
+  {% endfor %}
+</div>
+{% endblock %}

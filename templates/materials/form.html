@@ -1,0 +1,52 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'materials:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">{{ page_title }}</h3>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Material Details</h6></div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label">Title *</label><input type="text" name="title" class="form-control" required value="{% if material %}{{ material.title }}{% endif %}" placeholder="e.g. Chapter 5 Notes"></div>
+            <div class="col-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="3" placeholder="Brief description...">{% if material %}{{ material.description }}{% endif %}</textarea></div>
+            <div class="col-md-6">
+              <label class="form-label">Subject *</label>
+              <select name="subject" class="form-select" required>
+                <option value="">Select Subject</option>
+                {% for sub in subjects %}<option value="{{ sub.pk }}" {% if material and material.subject_id == sub.pk %}selected{% endif %}>{{ sub.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Class *</label>
+              <select name="academic_class" class="form-select" required>
+                <option value="">Select Class</option>
+                {% for cls in classes %}<option value="{{ cls.pk }}" {% if material and material.academic_class_id == cls.pk %}selected{% endif %}>{{ cls }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Material Type</label>
+              <select name="material_type" class="form-select">
+                {% for val, label in types %}<option value="{{ val }}" {% if material and material.material_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">External Link (optional)</label><input type="url" name="external_link" class="form-control" placeholder="https://..." value="{% if material %}{{ material.external_link }}{% endif %}"></div>
+            <div class="col-12"><label class="form-label">Upload File (optional)</label><input type="file" name="file" class="form-control">{% if material and material.file %}<div class="form-text text-success"><i class="bi bi-file-earmark-check me-1"></i>Current: {{ material.file.name|truncatechars:40 }}</div>{% endif %}</div>
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload me-1"></i>{% if action == 'create' %}Upload Material{% else %}Update Material{% endif %}</button>
+              <a href="{% url 'materials:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

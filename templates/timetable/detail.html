@@ -1,0 +1,18 @@
+{% extends 'shared/base.html' %}
+{% block title %}Timetable Entry{% endblock %}
+{% block content %}
+<div class="page-header">
+  <a href="{% url 'timetable:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+  <h3 class="mb-0">Timetable Entry</h3>
+</div>
+<div class="row justify-content-center"><div class="col-lg-5">
+<div class="card"><div class="card-body">
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Class</div><div class="fw-600 mt-1">{{ entry.academic_class }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Subject</div><div class="fw-600 mt-1">{{ entry.subject.name }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Teacher</div><div class="fw-600 mt-1">{{ entry.teacher.user.get_full_name }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Day</div><div class="fw-600 mt-1">{{ entry.get_day_display }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Time</div><div class="fw-600 mt-1">{{ entry.time_slot }}</div></div>
+  {% if entry.room %}<div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Room</div><div class="fw-600 mt-1">{{ entry.room }}</div></div>{% endif %}
+</div></div>
+</div></div>
+{% endblock %}

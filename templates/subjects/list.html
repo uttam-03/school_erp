@@ -1,0 +1,45 @@
+{% extends 'shared/base.html' %}
+{% block title %}Subjects{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h3>Subjects</h3><p class="text-muted mb-0" style="font-size:13px">{{ subjects|length }} total subjects</p></div>
+  {% if is_admin %}<a href="{% url 'subjects:create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Subject</a>{% endif %}
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Subject Name</th><th>Code</th><th>Max Marks</th><th>Passing Marks</th><th>Type</th><th>Classes</th>{% if is_admin %}<th>Actions</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for sub in subjects %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;flex-shrink:0">{{ sub.name|slice:":2"|upper }}</div>
+              <div>
+                <div class="fw-500">{{ sub.name }}</div>
+                {% if sub.description %}<div style="font-size:11px;color:var(--text-muted)">{{ sub.description|truncatechars:40 }}</div>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td><code style="font-size:12px;background:var(--surface-2);padding:3px 8px;border-radius:4px">{{ sub.code }}</code></td>
+          <td style="font-size:13px">{{ sub.max_marks }}</td>
+          <td style="font-size:13px">{{ sub.passing_marks }}</td>
+          <td><span class="badge {% if sub.is_elective %}badge-late{% else %}badge-present{% endif %}">{% if sub.is_elective %}Elective{% else %}Core{% endif %}</span></td>
+          <td><span class="badge" style="background:rgba(79,70,229,0.1);color:var(--primary)">{{ sub.classes.count }} classes</span></td>
+          {% if is_admin %}
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'subjects:edit' sub.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'subjects:delete' sub.pk %}" class="btn btn-sm btn-outline-danger" data-confirm="Delete {{ sub.name }}?"><i class="bi bi-trash"></i></a>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-book fs-1 d-block mb-2"></i>No subjects created yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

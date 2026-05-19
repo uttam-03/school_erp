@@ -1,0 +1,129 @@
+{% extends 'shared/base.html' %}
+{% block title %}Timetable{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h3>Timetable</h3>
+    <p class="text-muted mb-0" style="font-size:14px">Weekly class schedule</p>
+  </div>
+  {% if is_admin %}
+  <a href="{% url 'timetable:create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus me-1"></i>Add Entry
+  </a>
+  {% endif %}
+</div>
+
+{% if is_admin or is_teacher %}
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label mb-1" style="font-size:13px">Select Class</label>
+        <select name="class_id" class="form-select form-select-sm">
+          <option value="">-- All Classes --</option>
+          {% for cls in classes %}
+          <option value="{{ cls.pk }}" {% if selected_class and selected_class.pk == cls.pk %}selected{% endif %}>{{ cls }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary btn-sm">View Timetable</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if not time_slots %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle me-2"></i>
+  No time slots configured. Admin should run: <code>python manage.py load_timeslots</code>
+</div>
+{% elif not selected_class %}
+<div class="alert alert-info">
+  <i class="bi bi-info-circle me-2"></i>
+  {% if is_admin %}Select a class above to view its timetable.{% else %}No class assigned to your profile yet.{% endif %}
+</div>
+{% else %}
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="card-title">{{ selected_class }} — Weekly Timetable</h6>
+    <span class="badge" style="background:var(--primary-light);color:var(--primary)">{{ selected_class.academic_year }}</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered mb-0" style="min-width:700px">
+        <thead>
+          <tr style="background:var(--surface-2)">
+            <th style="width:130px;font-size:12px;padding:10px 14px">Period / Day</th>
+            {% for day_key, day_name in days %}
+            <th class="text-center" style="font-size:12px;padding:10px 8px">{{ day_name }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for slot in time_slots %}
+          <tr>
+            <td style="background:var(--surface-2);padding:10px 14px;vertical-align:middle">
+              <div class="fw-600" style="font-size:12px">{{ slot.name }}</div>
+              <div style="font-size:11px;color:var(--text-muted)">{{ slot.start_time|time:"H:i" }}–{{ slot.end_time|time:"H:i" }}</div>
+            </td>
+            {% for day_key, day_name in days %}
+            <td class="text-center p-2" style="vertical-align:middle;min-width:110px">
+              {% with entry=grid|default:{} %}
+              {% if day_key in grid and slot.pk in grid|dictsortreversed:"pk" %}
+                {# handled below #}
+              {% endif %}
+              {% endwith %}
+              {# Directly lookup grid[day][slot_id] #}
+              {% for entry in timetable %}
+                {% if entry.day == day_key and entry.time_slot_id == slot.pk %}
+                <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:8px;padding:6px 8px">
+                  <div class="fw-600" style="font-size:12px;color:var(--primary)">{{ entry.subject.name }}</div>
+                  <div style="font-size:11px;color:var(--text-muted)">{{ entry.teacher.user.first_name }} {{ entry.teacher.user.last_name }}</div>
+                  {% if entry.room %}<div style="font-size:10px;color:var(--text-muted)"><i class="bi bi-geo-alt"></i> {{ entry.room }}</div>{% endif %}
+                </div>
+                {% endif %}
+              {% endfor %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if is_admin %}
+<div class="mt-3">
+  <h6 class="text-muted mb-2" style="font-size:13px">All Entries for {{ selected_class }}</h6>
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-hover mb-0" style="font-size:13px">
+        <thead class="table-light"><tr><th>Day</th><th>Period</th><th>Subject</th><th>Teacher</th><th>Room</th><th></th></tr></thead>
+        <tbody>
+          {% for entry in timetable %}
+          <tr>
+            <td>{{ entry.get_day_display }}</td>
+            <td>{{ entry.time_slot.name }}</td>
+            <td>{{ entry.subject.name }}</td>
+            <td>{{ entry.teacher.user.get_full_name }}</td>
+            <td>{{ entry.room|default:"—" }}</td>
+            <td>
+              <a href="{% url 'timetable:edit' entry.pk %}" class="btn btn-sm btn-outline-warning py-0 px-2"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'timetable:delete' entry.pk %}" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('Delete this entry?')"><i class="bi bi-trash"></i></a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-3">No entries yet. <a href="{% url 'timetable:create' %}">Add one</a></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

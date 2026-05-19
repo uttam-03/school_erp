@@ -1,0 +1,58 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'teachers:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">{{ page_title }}</h3>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Teacher Information</h6></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12"><p class="text-muted mb-0" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Account Details</p></div>
+            <div class="col-md-6"><label class="form-label">First Name *</label><input type="text" name="first_name" class="form-control" required value="{% if teacher %}{{ teacher.user.first_name }}{% endif %}"></div>
+            <div class="col-md-6"><label class="form-label">Last Name *</label><input type="text" name="last_name" class="form-control" required value="{% if teacher %}{{ teacher.user.last_name }}{% endif %}"></div>
+            <div class="col-md-6"><label class="form-label">Email *</label><input type="email" name="email" class="form-control" required value="{% if teacher %}{{ teacher.user.email }}{% endif %}" {% if action == 'edit' %}readonly{% endif %}></div>
+            <div class="col-md-6"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{% if teacher %}{{ teacher.user.phone }}{% endif %}"></div>
+            {% if action == 'create' %}
+            <div class="col-md-6"><label class="form-label">Employee ID *</label><input type="text" name="employee_id" class="form-control" required placeholder="e.g. TCH2024001"></div>
+            <div class="col-md-6"><label class="form-label">Password *</label><input type="password" name="password" class="form-control" required></div>
+            {% endif %}
+            <div class="col-12 mt-2"><p class="text-muted mb-0" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Professional Details</p></div>
+            <div class="col-md-6"><label class="form-label">Qualification *</label><input type="text" name="qualification" class="form-control" required value="{% if teacher %}{{ teacher.qualification }}{% endif %}" placeholder="e.g. M.Sc Mathematics"></div>
+            <div class="col-md-6"><label class="form-label">Specialization</label><input type="text" name="specialization" class="form-control" value="{% if teacher %}{{ teacher.specialization }}{% endif %}" placeholder="e.g. Algebra, Calculus"></div>
+            <div class="col-md-4"><label class="form-label">Experience (Years)</label><input type="number" name="experience_years" class="form-control" min="0" value="{% if teacher %}{{ teacher.experience_years }}{% else %}0{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Joining Date *</label><input type="date" name="joining_date" class="form-control" required value="{% if teacher %}{{ teacher.joining_date|date:'Y-m-d' }}{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Salary (₹)</label><input type="number" name="salary" class="form-control" step="0.01" value="{% if teacher %}{{ teacher.salary }}{% else %}0{% endif %}"></div>
+            <div class="col-12 mt-2"><p class="text-muted mb-0" style="font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Assignments</p></div>
+            <div class="col-md-6">
+              <label class="form-label">Assigned Classes</label>
+              <select name="assigned_classes" class="form-select" multiple size="5">
+                {% for cls in classes %}<option value="{{ cls.pk }}" {% if teacher and cls in teacher.assigned_classes.all %}selected{% endif %}>{{ cls }}</option>{% endfor %}
+              </select>
+              <div class="form-text">Hold Ctrl/Cmd to select multiple</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Assigned Subjects</label>
+              <select name="assigned_subjects" class="form-select" multiple size="5">
+                {% for sub in subjects %}<option value="{{ sub.pk }}" {% if teacher and sub in teacher.assigned_subjects.all %}selected{% endif %}>{{ sub }}</option>{% endfor %}
+              </select>
+              <div class="form-text">Hold Ctrl/Cmd to select multiple</div>
+            </div>
+            <div class="col-12 mt-2 d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{% if action == 'create' %}Create Teacher{% else %}Update Teacher{% endif %}</button>
+              <a href="{% url 'teachers:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

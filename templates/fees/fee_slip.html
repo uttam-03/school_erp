@@ -1,0 +1,145 @@
+{% extends 'shared/base.html' %}
+{% block title %}Fee Slip — {{ payment.receipt_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+  .sidebar, .topbar, .btn, .page-header, nav, footer { display: none !important; }
+  .main-content { margin: 0 !important; padding: 0 !important; }
+  .slip-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+  body { background: white !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+  <div>
+    <h3>Fee Receipt</h3>
+    <p class="text-muted mb-0" style="font-size:14px">{{ payment.receipt_number }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-primary btn-sm">
+      <i class="bi bi-printer me-1"></i>Print / Download
+    </button>
+    <a href="{% url 'fees:index' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card slip-card" style="border-top:4px solid var(--primary)">
+      <div class="card-body p-4">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <div style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center">
+                <i class="bi bi-mortarboard-fill text-white" style="font-size:16px"></i>
+              </div>
+              <span style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--primary)">EduCore</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted)">School Management System</div>
+          </div>
+          <div class="text-end">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">Fee Receipt</div>
+            <div style="font-size:18px;font-weight:700;color:var(--primary)">{{ payment.receipt_number }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">{{ payment.payment_date|date:"d M Y" }}</div>
+          </div>
+        </div>
+
+        <hr style="border-color:var(--border);margin:16px 0">
+
+        <!-- Student Details -->
+        <div class="row mb-4">
+          <div class="col-6">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px">Student Details</div>
+            <div class="fw-700" style="font-size:15px">{{ student.user.get_full_name }}</div>
+            <div style="font-size:13px;color:var(--text-muted)">Admission No: <strong>{{ student.admission_number }}</strong></div>
+            {% if student.current_class %}
+            <div style="font-size:13px;color:var(--text-muted)">Class: <strong>{{ student.current_class }}</strong></div>
+            {% endif %}
+            <div style="font-size:13px;color:var(--text-muted)">Email: {{ student.user.email }}</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px">Payment Info</div>
+            <div style="font-size:13px">Method: <strong>{{ payment.get_payment_method_display }}</strong></div>
+            {% if payment.transaction_id %}
+            <div style="font-size:13px">Txn ID: <strong><code>{{ payment.transaction_id }}</code></strong></div>
+            {% endif %}
+            {% if payment.received_by %}
+            <div style="font-size:13px">Received by: <strong>{{ payment.received_by.get_full_name }}</strong></div>
+            {% else %}
+            <div style="font-size:13px">Mode: <strong>Self Payment</strong></div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Fee Breakdown -->
+        <div style="background:var(--surface-2);border-radius:10px;padding:16px;margin-bottom:20px">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">Fee Breakdown</div>
+          <table style="width:100%;font-size:13px">
+            <tr style="border-bottom:1px solid var(--border);padding-bottom:6px">
+              <td style="padding:5px 0;color:var(--text-muted)">Fee Structure</td>
+              <td style="text-align:right;font-weight:600">{{ payment.fee_record.fee_structure.name }}</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 0;color:var(--text-muted)">Tuition Fee</td>
+              <td style="text-align:right">₹{{ payment.fee_record.fee_structure.tuition_fee|floatformat:0 }}</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 0;color:var(--text-muted)">Transport Fee</td>
+              <td style="text-align:right">₹{{ payment.fee_record.fee_structure.transport_fee|floatformat:0 }}</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 0;color:var(--text-muted)">Library Fee</td>
+              <td style="text-align:right">₹{{ payment.fee_record.fee_structure.library_fee|floatformat:0 }}</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 0;color:var(--text-muted)">Lab Fee</td>
+              <td style="text-align:right">₹{{ payment.fee_record.fee_structure.lab_fee|floatformat:0 }}</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 0;color:var(--text-muted)">Misc Fee</td>
+              <td style="text-align:right">₹{{ payment.fee_record.fee_structure.misc_fee|floatformat:0 }}</td>
+            </tr>
+            {% if payment.fee_record.discount > 0 %}
+            <tr style="color:#22c55e">
+              <td style="padding:5px 0">Discount</td>
+              <td style="text-align:right">- ₹{{ payment.fee_record.discount|floatformat:0 }}</td>
+            </tr>
+            {% endif %}
+            <tr style="border-top:2px solid var(--border)">
+              <td style="padding:10px 0 4px;font-weight:700;font-size:15px">Amount Paid</td>
+              <td style="text-align:right;font-weight:700;font-size:18px;color:var(--primary)">₹{{ payment.amount_paid|floatformat:0 }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Status -->
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="badge bg-success fs-6 px-3 py-2">
+              <i class="bi bi-check-circle me-1"></i>Payment Confirmed
+            </span>
+          </div>
+          <div class="text-end" style="font-size:11px;color:var(--text-muted)">
+            Generated on {% now "d M Y, H:i" %}<br>
+            This is a computer-generated receipt.
+          </div>
+        </div>
+
+        {% if payment.remarks %}
+        <div class="mt-3 p-2 rounded" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);font-size:12px;color:var(--text-muted)">
+          <i class="bi bi-info-circle me-1"></i>Note: {{ payment.remarks }}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

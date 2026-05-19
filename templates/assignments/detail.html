@@ -1,0 +1,66 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ assignment.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'assignments:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <div><h3 class="mb-0">{{ assignment.title }}</h3><small class="text-muted">{{ assignment.subject.name }} · {{ assignment.assigned_class }}</small></div>
+  </div>
+  {% if is_student and not submission %}
+  <a href="{% url 'assignments:submit' assignment.pk %}" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Submit</a>
+  {% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="card-title">Description</h6></div>
+      <div class="card-body"><p style="font-size:14px;line-height:1.7">{{ assignment.description }}</p>
+      {% if assignment.file %}<a href="{{ assignment.file.url }}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i>Download Attachment</a>{% endif %}
+      </div>
+    </div>
+    {% if not is_student and submissions %}
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Submissions ({{ submissions.count }})</h6></div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Student</th><th>Submitted</th><th>Status</th><th>Marks</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for sub in submissions %}
+            <tr>
+              <td class="fw-500" style="font-size:13px">{{ sub.student.user.get_full_name }}</td>
+              <td style="font-size:12px;color:var(--text-muted)">{{ sub.submitted_at|date:"M d, H:i" }}</td>
+              <td><span class="badge badge-present">{{ sub.get_status_display }}</span></td>
+              <td style="font-size:13px">{% if sub.marks_obtained %}{{ sub.marks_obtained }}/{{ assignment.max_marks }}{% else %}—{% endif %}</td>
+              <td><a href="{% url 'assignments:grade' sub.pk %}" class="btn btn-sm btn-outline-primary">Grade</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+    {% if is_student and submission %}
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Your Submission</h6></div>
+      <div class="card-body">
+        <div class="d-flex gap-3">
+          <div><span class="badge badge-present mb-2">{{ submission.get_status_display }}</span><div style="font-size:13px">Submitted: {{ submission.submitted_at|date:"M d, Y H:i" }}</div>{% if submission.marks_obtained %}<div class="mt-2 fw-600 text-success fs-5">{{ submission.marks_obtained }} / {{ assignment.max_marks }}</div>{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Assignment Info</h6></div>
+      <div class="card-body">
+        <div class="mb-3"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px">Subject</div><div class="fw-500 mt-1">{{ assignment.subject.name }}</div></div>
+        <div class="mb-3"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px">Class</div><div class="fw-500 mt-1">{{ assignment.assigned_class }}</div></div>
+        <div class="mb-3"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px">Due Date</div><div class="fw-500 mt-1 {% if assignment.is_overdue %}text-danger{% endif %}">{{ assignment.due_date|date:"M d, Y H:i" }}</div></div>
+        <div class="mb-3"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px">Max Marks</div><div class="fw-500 mt-1">{{ assignment.max_marks }}</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px">Posted By</div><div class="fw-500 mt-1">{{ assignment.teacher.user.get_full_name }}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

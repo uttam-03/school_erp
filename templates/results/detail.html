@@ -1,0 +1,18 @@
+{% extends 'shared/base.html' %}
+{% block title %}Result Detail{% endblock %}
+{% block content %}
+<div class="page-header">
+  <a href="{% url 'results:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+  <h3 class="mb-0">Result Detail</h3>
+</div>
+<div class="row justify-content-center"><div class="col-lg-5">
+<div class="card"><div class="card-body">
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Student</div><div class="fw-600 mt-1">{{ result.student.user.get_full_name }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Exam</div><div class="fw-600 mt-1">{{ result.exam.name }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Subject</div><div class="fw-600 mt-1">{{ result.subject.name }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Marks</div><div class="fw-600 mt-1 fs-4">{{ result.marks_obtained }} / {{ result.total_marks }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Grade</div><span class="grade-badge grade-{{ result.grade }} fs-5">{{ result.grade }}</span></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Status</div><span class="badge {% if result.is_pass %}badge-present{% else %}badge-absent{% endif %}">{% if result.is_pass %}Pass{% else %}Fail{% endif %}</span></div>
+</div></div>
+</div></div>
+{% endblock %}

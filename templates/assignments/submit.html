@@ -1,0 +1,37 @@
+{% extends 'shared/base.html' %}
+{% block title %}Submit Assignment{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'assignments:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <div><h3 class="mb-0">Submit Assignment</h3><small class="text-muted">{{ assignment.title }}</small></div>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-body" style="background:rgba(79,70,229,0.04)">
+        <div class="fw-600 mb-1">{{ assignment.title }}</div>
+        <div style="font-size:13px;color:var(--text-muted)">{{ assignment.subject.name }} · Due: <span class="{% if assignment.is_overdue %}text-danger fw-600{% endif %}">{{ assignment.due_date|date:"M d, Y H:i" }}</span></div>
+        {% if assignment.is_overdue %}<div class="text-danger mt-1" style="font-size:12px"><i class="bi bi-exclamation-triangle me-1"></i>This assignment is overdue. Submission will be marked as late.</div>{% endif %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Your Submission</h6></div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label">Upload File</label><input type="file" name="file" class="form-control"></div>
+            <div class="col-12"><label class="form-label">Remarks / Notes</label><textarea name="remarks" class="form-control" rows="4" placeholder="Add any notes or comments about your submission..."></textarea></div>
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Submit Assignment</button>
+              <a href="{% url 'assignments:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

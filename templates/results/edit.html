@@ -1,0 +1,40 @@
+{% extends 'shared/base.html' %}
+{% block title %}Edit Result{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'results:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">Edit Result</h3>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Result Details</h6></div>
+      <div class="card-body">
+        <div class="mb-4 p-3 rounded" style="background:var(--surface-2)">
+          <div class="fw-600">{{ result.student.user.get_full_name }}</div>
+          <div class="text-muted" style="font-size:13px">{{ result.exam.name }} · {{ result.subject.name }}</div>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Marks Obtained (out of {{ result.total_marks }})</label>
+              <input type="number" name="marks_obtained" class="form-control" min="0" max="{{ result.total_marks }}" value="{{ result.marks_obtained }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Remarks</label>
+              <textarea name="remarks" class="form-control" rows="3">{{ result.remarks }}</textarea>
+            </div>
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Update Result</button>
+              <a href="{% url 'results:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

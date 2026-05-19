@@ -1,0 +1,120 @@
+{% extends 'shared/base.html' %}
+{% block title %}Attendance{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h3>Attendance</h3>
+  {% if is_admin or is_teacher %}
+  <a href="{% url 'attendance:create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Mark Attendance
+  </a>
+  {% endif %}
+</div>
+
+{% if student_stats %}
+<!-- Student summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Total Days</div>
+        <div class="stat-value">{{ student_stats.total }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-success">
+      <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Present</div>
+        <div class="stat-value">{{ student_stats.present }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-danger">
+      <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Absent</div>
+        <div class="stat-value">{{ student_stats.absent }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card stat-{% if student_stats.percentage >= 75 %}success{% elif student_stats.percentage >= 50 %}warning{% else %}danger{% endif %}">
+      <div class="stat-icon"><i class="bi bi-percent"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Percentage</div>
+        <div class="stat-value">{{ student_stats.percentage }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Filter -->
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" class="search-bar">
+      <input type="date" name="date" class="form-control" style="max-width:180px"
+             value="{{ request.GET.date }}" placeholder="Filter by date">
+      <button type="submit" class="btn btn-outline-primary">Filter</button>
+      {% if request.GET.date %}
+      <a href="{% url 'attendance:index' %}" class="btn btn-outline-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          {% if not is_student %}<th>Student</th>{% endif %}
+          <th>Date</th>
+          <th>Subject</th>
+          <th>Status</th>
+          <th>Marked By</th>
+          <th>Remarks</th>
+          {% if is_admin or is_teacher %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          {% if not is_student %}
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img src="{{ record.student.user.get_profile_image_url }}" class="avatar-sm avatar" alt="">
+              <span class="fw-500" style="font-size:13px">{{ record.student.user.get_full_name }}</span>
+            </div>
+          </td>
+          {% endif %}
+          <td style="font-size:13px">{{ record.date|date:"M d, Y" }}</td>
+          <td style="font-size:13px">{{ record.subject.name|default:"General" }}</td>
+          <td><span class="badge badge-{{ record.status }}">{{ record.get_status_display }}</span></td>
+          <td style="font-size:13px;color:var(--text-muted)">{{ record.marked_by.user.get_full_name|default:"—" }}</td>
+          <td style="font-size:12px;color:var(--text-muted)">{{ record.remarks|default:"—" }}</td>
+          {% if is_admin or is_teacher %}
+          <td>
+            <a href="{% url 'attendance:edit' record.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-5 text-muted">
+            <i class="bi bi-clipboard2-x fs-1 d-block mb-2"></i>
+            No attendance records found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

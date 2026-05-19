@@ -1,0 +1,73 @@
+{% extends 'shared/base.html' %}
+{% block title %}Collect Payment{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'fees:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">Collect Payment</h3>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Payment Details</h6></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Student *</label>
+              <select name="student_id" class="form-select" id="studentSelect" onchange="loadFeeRecords(this.value)" required>
+                <option value="">Select Student</option>
+                {% for s in students %}<option value="{{ s.pk }}">{{ s.user.get_full_name }} ({{ s.admission_number }})</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Fee Record *</label>
+              <select name="fee_record" class="form-select" required id="feeRecordSelect">
+                <option value="">Select student first...</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Amount Paid (₹) *</label><input type="number" name="amount_paid" class="form-control" required step="0.01" placeholder="0.00"></div>
+            <div class="col-md-6">
+              <label class="form-label">Payment Method</label>
+              <select name="payment_method" class="form-select">
+                <option value="cash">Cash</option>
+                <option value="cheque">Cheque</option>
+                <option value="online">Online Transfer</option>
+                <option value="card">Card</option>
+                <option value="upi">UPI</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Transaction ID</label><input type="text" name="transaction_id" class="form-control" placeholder="Optional"></div>
+            <div class="col-md-6"><label class="form-label">Payment Date *</label><input type="date" name="payment_date" class="form-control" required value="{% now 'Y-m-d' %}"></div>
+            <div class="col-12"><label class="form-label">Remarks</label><textarea name="remarks" class="form-control" rows="2" placeholder="Optional remarks..."></textarea></div>
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-success"><i class="bi bi-cash-coin me-1"></i>Record Payment</button>
+              <a href="{% url 'fees:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function loadFeeRecords(studentId) {
+  const sel = document.getElementById('feeRecordSelect');
+  sel.innerHTML = '<option value="">Loading...</option>';
+  if (!studentId) { sel.innerHTML = '<option value="">Select student first...</option>'; return; }
+  fetch(`/api/v1/fee-records/?student=${studentId}`)
+    .then(r => r.json())
+    .then(data => {
+      sel.innerHTML = '<option value="">Select fee record</option>';
+      (data.results || data).forEach(r => {
+        sel.innerHTML += `<option value="${r.id}">${r.fee_structure_name} — ₹${r.net_amount} (${r.status})</option>`;
+      });
+    })
+    .catch(() => { sel.innerHTML = '<option value="">Error loading records</option>'; });
+}
+</script>
+{% endblock %}

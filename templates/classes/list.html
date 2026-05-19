@@ -1,0 +1,57 @@
+{% extends 'shared/base.html' %}
+{% block title %}Classes{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h3>Classes</h3><p class="text-muted mb-0" style="font-size:13px">{{ classes|length }} total classes</p></div>
+  {% if is_admin %}<a href="{% url 'classes:create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Class</a>{% endif %}
+</div>
+<div class="row g-3">
+  {% for cls in classes %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h5 class="mb-1 fw-700">{{ cls.name }} — {{ cls.section }}</h5>
+            <div style="font-size:13px;color:var(--text-muted)">Academic Year: {{ cls.academic_year }}</div>
+          </div>
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px;flex-shrink:0">
+            {{ cls.name|slice:":2" }}
+          </div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;text-align:center">
+              <div class="fw-700 fs-5" style="color:var(--primary)">{{ cls.get_student_count }}</div>
+              <div style="font-size:11px;color:var(--text-muted)">Students</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div style="background:var(--surface-2);border-radius:8px;padding:8px 12px;text-align:center">
+              <div class="fw-700 fs-5" style="color:var(--cyan,#06b6d4)">{{ cls.subjects.count }}</div>
+              <div style="font-size:11px;color:var(--text-muted)">Subjects</div>
+            </div>
+          </div>
+        </div>
+        {% if cls.class_teacher %}
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <img src="{{ cls.class_teacher.user.get_profile_image_url }}" class="avatar-sm avatar" alt="">
+          <div><div style="font-size:12px;color:var(--text-muted)">Class Teacher</div><div style="font-size:13px;font-weight:500">{{ cls.class_teacher.user.get_full_name }}</div></div>
+        </div>
+        {% endif %}
+        {% if cls.room_number %}<div style="font-size:12px;color:var(--text-muted)" class="mb-3"><i class="bi bi-geo-alt me-1"></i>Room {{ cls.room_number }}</div>{% endif %}
+        <div class="d-flex gap-2">
+          <a href="{% url 'classes:detail' cls.pk %}" class="btn btn-sm btn-outline-primary flex-1">View Details</a>
+          {% if is_admin %}
+          <a href="{% url 'classes:edit' cls.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+          <a href="{% url 'classes:delete' cls.pk %}" class="btn btn-sm btn-outline-danger" data-confirm="Delete {{ cls }}?"><i class="bi bi-trash"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><div class="card"><div class="card-body text-center py-5 text-muted"><i class="bi bi-building fs-1 d-block mb-2"></i>No classes created yet.{% if is_admin %}<div class="mt-2"><a href="{% url 'classes:create' %}" class="btn btn-primary btn-sm">Create First Class</a></div>{% endif %}</div></div></div>
+  {% endfor %}
+</div>
+{% endblock %}

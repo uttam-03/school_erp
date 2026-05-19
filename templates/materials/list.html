@@ -1,0 +1,55 @@
+{% extends 'shared/base.html' %}
+{% block title %}Study Materials{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h3>Study Materials</h3></div>
+  {% if is_admin or is_teacher %}<a href="{% url 'materials:create' %}" class="btn btn-primary"><i class="bi bi-cloud-upload me-1"></i>Upload Material</a>{% endif %}
+</div>
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="search-bar">
+      <select name="subject" class="form-select" style="max-width:220px" onchange="this.form.submit()">
+        <option value="">All Subjects</option>
+        {% for sub in subjects %}<option value="{{ sub.pk }}" {% if subject_filter == sub.pk|stringformat:"s" %}selected{% endif %}>{{ sub.name }}</option>{% endfor %}
+      </select>
+      {% if subject_filter %}<a href="{% url 'materials:index' %}" class="btn btn-outline-secondary">Clear</a>{% endif %}
+    </form>
+  </div>
+</div>
+<div class="row g-3">
+  {% for m in materials %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3 mb-3">
+          <div style="width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;
+            background:{% if m.material_type == 'pdf' %}rgba(239,68,68,0.1){% elif m.material_type == 'video' %}rgba(59,130,246,0.1){% else %}rgba(79,70,229,0.1){% endif %}">
+            {% if m.material_type == 'pdf' %}📄{% elif m.material_type == 'video' %}🎥{% elif m.material_type == 'slides' %}📊{% else %}📁{% endif %}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="fw-600 mb-1" style="font-size:14px">{{ m.title }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">{{ m.subject.name }} · {{ m.academic_class }}</div>
+          </div>
+        </div>
+        {% if m.description %}<p class="text-muted mb-3" style="font-size:13px">{{ m.description|truncatechars:80 }}</p>{% endif %}
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="badge" style="background:rgba(79,70,229,0.1);color:var(--primary);font-size:11px">{{ m.get_material_type_display }}</span>
+            <span style="font-size:11px;color:var(--text-muted)" class="ms-2"><i class="bi bi-download me-1"></i>{{ m.download_count }}</span>
+          </div>
+          <div class="d-flex gap-1">
+            {% if m.file %}<a href="{{ m.file.url }}" class="btn btn-sm btn-primary" target="_blank"><i class="bi bi-download me-1"></i>Download</a>{% elif m.external_link %}<a href="{{ m.external_link }}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-box-arrow-up-right me-1"></i>Open</a>{% endif %}
+            {% if is_admin or is_teacher %}
+            <a href="{% url 'materials:delete' m.pk %}" class="btn btn-sm btn-outline-danger" data-confirm="Delete this material?"><i class="bi bi-trash"></i></a>
+            {% endif %}
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted)" class="mt-2">By {{ m.uploaded_by.user.get_full_name }} · {{ m.created_at|date:"M d, Y" }}</div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><div class="card"><div class="card-body text-center py-5 text-muted"><i class="bi bi-cloud-download fs-1 d-block mb-2"></i>No study materials uploaded yet.</div></div></div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends 'shared/base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h3 id="greeting">Good Morning!</h3>
+    <p class="text-muted mb-0" style="font-size:14px">Welcome back, <strong>{{ user.get_full_name }}</strong> 👋
+      {% if student and student.current_class %}— {{ student.current_class }}{% endif %}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'fees:index' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-cash-coin me-1"></i>My Fees
+    </a>
+    <a href="{% url 'assignments:index' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-file-earmark-text me-1"></i>Assignments
+    </a>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon"><i class="bi bi-clipboard2-check-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Attendance</div>
+        <div class="stat-value">{{ stats.attendance_pct }}%</div>
+        <div class="stat-sub">
+          <div class="progress mt-2" style="height:4px">
+            <div class="progress-bar bg-primary" style="width:{{ stats.attendance_pct }}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-cyan">
+      <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Subjects</div>
+        <div class="stat-value">{{ stats.total_subjects }}</div>
+        <div class="stat-sub">This semester</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-warning">
+      <div class="stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Pending Tasks</div>
+        <div class="stat-value">{{ stats.assignments_pending }}</div>
+        <div class="stat-sub">Assignments due</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card {% if stats.pending_fees > 0 %}stat-danger{% else %}stat-success{% endif %}">
+      <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Pending Fees</div>
+        <div class="stat-value">₹{{ stats.pending_fees|floatformat:0 }}</div>
+        <div class="stat-sub">
+          {% if stats.pending_fees > 0 %}
+          <a href="{% url 'fees:index' %}" class="text-danger fw-600">View fee details →</a>
+          {% else %}
+          <span class="text-success">All fees clear ✓</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left: Results + Assignments -->
+  <div class="col-lg-8">
+    <!-- Recent Results -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="card-title">Recent Results</h6>
+        <a href="{% url 'results:index' %}" class="btn btn-sm btn-outline-primary">All Results</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0" style="font-size:13px">
+          <thead><tr><th>Exam</th><th>Subject</th><th>Marks</th><th>Grade</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for result in recent_results %}
+            <tr>
+              <td class="fw-500">{{ result.exam.name }}</td>
+              <td>{{ result.subject.name }}</td>
+              <td>{{ result.marks_obtained }}/{{ result.total_marks }}</td>
+              <td><span class="grade-badge grade-{{ result.grade }}">{{ result.grade }}</span></td>
+              <td>
+                <span class="badge {% if result.is_pass %}badge-present{% else %}badge-absent{% endif %}">
+                  {% if result.is_pass %}Pass{% else %}Fail{% endif %}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No results yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pending Assignments -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="card-title">Pending Assignments</h6>
+        <a href="{% url 'assignments:index' %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% for assignment in pending_assignments %}
+        <div class="d-flex align-items-center gap-3 p-3" style="border-bottom:1px solid var(--border)">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;color:var(--warning);flex-shrink:0">
+            <i class="bi bi-file-earmark-text-fill"></i>
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-500" style="font-size:14px">{{ assignment.title }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">
+              {{ assignment.subject.name }} · By {{ assignment.teacher.user.get_full_name }}
+              · Due <strong {% if assignment.is_overdue %}class="text-danger"{% endif %}>{{ assignment.due_date|date:"M d, Y" }}</strong>
+            </div>
+          </div>
+          <a href="{% url 'assignments:submit' assignment.pk %}" class="btn btn-sm btn-primary flex-shrink-0">Submit</a>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+          No pending assignments!
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Attendance + Fee Summary + Quick Links -->
+  <div class="col-lg-4">
+    <!-- Attendance Donut -->
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="card-title">Attendance Overview</h6></div>
+      <div class="card-body text-center">
+        <canvas id="attDonut" height="180"></canvas>
+        <div class="mt-3 fw-700 fs-4" style="color:var(--primary)">{{ attendance_pct }}%</div>
+        <div class="text-muted" style="font-size:13px">Overall Attendance</div>
+      </div>
+    </div>
+
+    <!-- Fee Summary Card -->
+    <div class="card mb-3" style="border:{% if stats.pending_fees > 0 %}1px solid rgba(239,68,68,0.3){% else %}1px solid rgba(34,197,94,0.3){% endif %}">
+      <div class="card-header"><h6 class="card-title">Fee Summary</h6></div>
+      <div class="card-body p-3">
+        <div class="d-flex justify-content-between mb-2" style="font-size:13px">
+          <span class="text-muted">Total Fee</span>
+          <span class="fw-600">₹{{ stats.total_fee|default:"0"|floatformat:0 }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2" style="font-size:13px">
+          <span class="text-muted">Paid</span>
+          <span class="fw-600 text-success">₹{{ stats.total_paid|default:"0"|floatformat:0 }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3" style="font-size:13px">
+          <span class="text-muted">Pending</span>
+          <span class="fw-600 {% if stats.pending_fees > 0 %}text-danger{% else %}text-success{% endif %}">₹{{ stats.pending_fees|floatformat:0 }}</span>
+        </div>
+        {% if stats.pending_fees > 0 %}
+        <div class="progress mb-2" style="height:6px">
+          {% widthratio stats.total_paid|default:0 stats.total_fee|default:1 100 as pct %}
+          <div class="progress-bar bg-success" style="width:{{ pct }}%"></div>
+        </div>
+        {% endif %}
+        <a href="{% url 'fees:index' %}" class="btn btn-sm btn-outline-primary w-100 mt-1">
+          <i class="bi bi-receipt me-1"></i>View Fee Details & Slips
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Quick Links</h6></div>
+      <div class="card-body p-2">
+        {% for icon, color, label, url_name in quick_links %}
+        {% endfor %}
+        <a href="{% url 'timetable:index' %}" class="d-flex align-items-center gap-3 p-2 rounded mb-1" style="color:var(--text);text-decoration:none;transition:background 0.2s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+          <i class="bi bi-calendar3 text-primary fs-5"></i>
+          <span style="font-size:14px">My Timetable</span>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </a>
+        <a href="{% url 'materials:index' %}" class="d-flex align-items-center gap-3 p-2 rounded mb-1" style="color:var(--text);text-decoration:none;transition:background 0.2s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+          <i class="bi bi-cloud-download-fill text-success fs-5"></i>
+          <span style="font-size:14px">Study Materials</span>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </a>
+        <a href="{% url 'attendance:index' %}" class="d-flex align-items-center gap-3 p-2 rounded mb-1" style="color:var(--text);text-decoration:none;transition:background 0.2s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+          <i class="bi bi-clipboard2-check-fill text-info fs-5"></i>
+          <span style="font-size:14px">My Attendance</span>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </a>
+        <a href="{% url 'notifications:announcements' %}" class="d-flex align-items-center gap-3 p-2 rounded" style="color:var(--text);text-decoration:none;transition:background 0.2s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+          <i class="bi bi-megaphone-fill text-warning fs-5"></i>
+          <span style="font-size:14px">Announcements</span>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Time-based greeting
+const hour = new Date().getHours();
+let greeting = 'Good Evening! 🌙';
+if (hour < 12) greeting = 'Good Morning! ☀️';
+else if (hour < 17) greeting = 'Good Afternoon! 🌤️';
+document.getElementById('greeting').textContent = greeting;
+
+// Attendance donut
+const attData = {{ att_data|safe }};
+const ctx = document.getElementById('attDonut')?.getContext('2d');
+if (ctx && typeof Chart !== 'undefined') {
+  const labelMap = { present:'Present', absent:'Absent', late:'Late', excused:'Excused' };
+  const colorMap = { present:'#22c55e', absent:'#ef4444', late:'#f59e0b', excused:'#3b82f6' };
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: attData.map(d => labelMap[d.status] || d.status),
+      datasets: [{ data: attData.map(d => d.count), backgroundColor: attData.map(d => colorMap[d.status] || '#94a3b8'), borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '72%',
+      plugins: { legend: { position:'bottom', labels:{ padding:14, boxWidth:10, font:{ size:12 } } } }
+    }
+  });
+}
+</script>
+{% endblock %}

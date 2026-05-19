@@ -1,0 +1,30 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ subject.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'subjects:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">{{ subject.name }}</h3>
+  </div>
+  {% if is_admin %}
+  <a href="{% url 'subjects:edit' subject.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+  {% endif %}
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Subject Code</div><div class="fw-600 mt-1"><code>{{ subject.code }}</code></div></div>
+          <div class="col-6"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Type</div><div class="fw-600 mt-1">{% if subject.is_elective %}Elective{% else %}Core{% endif %}</div></div>
+          <div class="col-6"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Max Marks</div><div class="fw-600 mt-1">{{ subject.max_marks }}</div></div>
+          <div class="col-6"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Passing Marks</div><div class="fw-600 mt-1">{{ subject.passing_marks }}</div></div>
+          {% if subject.description %}
+          <div class="col-12"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Description</div><div class="mt-1" style="font-size:14px">{{ subject.description }}</div></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

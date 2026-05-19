@@ -1,0 +1,44 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'fees:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">{{ page_title }}</h3>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Fee Structure Details</h6></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label">Structure Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Annual Fee 2024-25" value="{% if structure %}{{ structure.name }}{% endif %}"></div>
+            <div class="col-md-6">
+              <label class="form-label">Class *</label>
+              <select name="academic_class" class="form-select" required>
+                <option value="">Select Class</option>
+                {% for cls in classes %}<option value="{{ cls.pk }}" {% if structure and structure.academic_class_id == cls.pk %}selected{% endif %}>{{ cls }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Academic Year *</label><input type="text" name="academic_year" class="form-control" required placeholder="2024-25" value="{% if structure %}{{ structure.academic_year }}{% endif %}"></div>
+            <div class="col-12"><hr><h6 class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Fee Breakdown</h6></div>
+            <div class="col-md-4"><label class="form-label">Tuition Fee (₹)</label><input type="number" name="tuition_fee" class="form-control" step="0.01" value="{% if structure %}{{ structure.tuition_fee }}{% else %}0{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Transport Fee (₹)</label><input type="number" name="transport_fee" class="form-control" step="0.01" value="{% if structure %}{{ structure.transport_fee }}{% else %}0{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Library Fee (₹)</label><input type="number" name="library_fee" class="form-control" step="0.01" value="{% if structure %}{{ structure.library_fee }}{% else %}0{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Lab Fee (₹)</label><input type="number" name="lab_fee" class="form-control" step="0.01" value="{% if structure %}{{ structure.lab_fee }}{% else %}0{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Miscellaneous (₹)</label><input type="number" name="misc_fee" class="form-control" step="0.01" value="{% if structure %}{{ structure.misc_fee }}{% else %}0{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Due Date *</label><input type="date" name="due_date" class="form-control" required value="{% if structure %}{{ structure.due_date|date:'Y-m-d' }}{% endif %}"></div>
+            <div class="col-12 d-flex gap-2 mt-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{% if action == 'create' %}Create Structure{% else %}Update Structure{% endif %}</button>
+              <a href="{% url 'fees:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

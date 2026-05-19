@@ -1,0 +1,159 @@
+{% extends 'shared/base.html' %}
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h3>Teacher Dashboard</h3>
+    <p class="text-muted mb-0" style="font-size:14px">Welcome, {{ user.get_full_name }} 👋</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'attendance:create' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-clipboard2-check me-1"></i>Mark Attendance
+    </a>
+    <a href="{% url 'assignments:create' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-plus me-1"></i>New Assignment
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-primary fade-in-up">
+      <div class="stat-icon"><i class="bi bi-building"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">My Classes</div>
+        <div class="stat-value">{{ stats.assigned_classes|default:"0" }}</div>
+        <div class="stat-sub">Assigned classes</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-cyan fade-in-up">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value">{{ stats.total_students|default:"0" }}</div>
+        <div class="stat-sub">Across all classes</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-success fade-in-up">
+      <div class="stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Assignments</div>
+        <div class="stat-value">{{ stats.assignments_given|default:"0" }}</div>
+        <div class="stat-sub">Total given</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-info fade-in-up">
+      <div class="stat-icon"><i class="bi bi-clipboard2-check-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Today's Attendance</div>
+        <div class="stat-value">{{ stats.today_attendance|default:"0" }}</div>
+        <div class="stat-sub">Records marked</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- My Classes -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">My Classes</h6></div>
+      <div class="card-body p-0">
+        {% for cls in assigned_classes %}
+        <div class="d-flex align-items-center justify-content-between p-3" style="border-bottom:1px solid var(--border)">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px">
+              {{ cls.name|slice:":2" }}
+            </div>
+            <div>
+              <div class="fw-600" style="font-size:14px">{{ cls }}</div>
+              <div style="font-size:12px;color:var(--text-muted)">{{ cls.get_student_count }} students · Room {{ cls.room_number|default:"N/A" }}</div>
+            </div>
+          </div>
+          <div class="d-flex gap-1">
+            <a href="{% url 'attendance:create' %}?class_id={{ cls.pk }}" class="btn btn-sm btn-outline-primary" title="Mark Attendance">
+              <i class="bi bi-clipboard2-check"></i>
+            </a>
+            <a href="{% url 'classes:detail' cls.pk %}" class="btn btn-sm btn-outline-secondary" title="View Class">
+              <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-4 text-center text-muted">No classes assigned yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Assignments -->
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="card-title">Recent Assignments</h6>
+        <a href="{% url 'assignments:create' %}" class="btn btn-sm btn-primary">
+          <i class="bi bi-plus me-1"></i>New
+        </a>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Title</th><th>Class</th><th>Due Date</th><th>Submissions</th></tr></thead>
+          <tbody>
+            {% for a in recent_assignments %}
+            <tr>
+              <td>
+                <a href="{% url 'assignments:detail' a.pk %}" class="fw-500 text-decoration-none" style="font-size:13px">{{ a.title }}</a>
+                <div style="font-size:11px;color:var(--text-muted)">{{ a.subject.name }}</div>
+              </td>
+              <td style="font-size:13px">{{ a.assigned_class }}</td>
+              <td>
+                <span style="font-size:12px" class="{% if a.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                  {{ a.due_date|date:"M d, Y" }}
+                  {% if a.is_overdue %}<span class="badge badge-absent" style="font-size:9px">Overdue</span>{% endif %}
+                </span>
+              </td>
+              <td>
+                <span class="badge" style="background:rgba(79,70,229,0.1);color:var(--primary)">
+                  {{ a.submissions.count }} submitted
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted py-4">No assignments yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Today's Attendance -->
+    <div class="card mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="card-title">Today's Attendance Records</h6>
+        <a href="{% url 'attendance:create' %}" class="btn btn-sm btn-outline-primary">Mark More</a>
+      </div>
+      <div class="card-body p-0">
+        {% for record in today_attendance %}
+        <div class="d-flex align-items-center justify-content-between p-2 px-3" style="border-bottom:1px solid var(--border)">
+          <div class="d-flex align-items-center gap-2">
+            <img src="{{ record.student.user.get_profile_image_url }}" class="avatar-sm avatar" alt="">
+            <span style="font-size:13px" class="fw-500">{{ record.student.user.get_full_name }}</span>
+          </div>
+          <span class="badge badge-{{ record.status }}">{{ record.get_status_display }}</span>
+        </div>
+        {% empty %}
+        <div class="p-3 text-center text-muted" style="font-size:13px">No attendance marked today.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

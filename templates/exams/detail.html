@@ -1,0 +1,66 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ exam.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'exams:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <div><h3 class="mb-0">{{ exam.name }}</h3><small class="text-muted">{{ exam.get_exam_type_display }} · {{ exam.academic_class }}</small></div>
+  </div>
+  {% if is_admin or is_teacher %}
+  <div class="d-flex gap-2">
+    <a href="{% url 'results:create' %}?exam_id={{ exam.pk }}" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Enter Results</a>
+    <a href="{% url 'exams:edit' exam.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card stat-primary"><div class="stat-icon"><i class="bi bi-book"></i></div><div class="stat-info"><div class="stat-label">Subject</div><div style="font-size:14px;font-weight:600">{{ exam.subject.name }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card stat-cyan"><div class="stat-icon"><i class="bi bi-calendar"></i></div><div class="stat-info"><div class="stat-label">Date</div><div style="font-size:14px;font-weight:600">{{ exam.exam_date|date:"M d, Y" }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card stat-success"><div class="stat-icon"><i class="bi bi-trophy"></i></div><div class="stat-info"><div class="stat-label">Total Marks</div><div class="stat-value">{{ exam.total_marks }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card stat-info"><div class="stat-icon"><i class="bi bi-check-circle"></i></div><div class="stat-info"><div class="stat-label">Passing Marks</div><div class="stat-value">{{ exam.passing_marks }}</div></div></div></div>
+</div>
+
+{% if exam.instructions %}
+<div class="card mb-4">
+  <div class="card-header"><h6 class="card-title">Instructions</h6></div>
+  <div class="card-body"><p style="font-size:14px;line-height:1.7;margin:0">{{ exam.instructions }}</p></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="card-title">Results ({{ results.count }} submitted)</h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Student</th><th>Marks</th><th>Percentage</th><th>Grade</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for result in results %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img src="{{ result.student.user.get_profile_image_url }}" class="avatar-sm avatar" alt="">
+              <div><div class="fw-500" style="font-size:13px">{{ result.student.user.get_full_name }}</div><div style="font-size:11px;color:var(--text-muted)">{{ result.student.admission_number }}</div></div>
+            </div>
+          </td>
+          <td class="fw-600">{{ result.marks_obtained }} / {{ result.total_marks }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress" style="width:60px;height:5px">
+                <div class="progress-bar {% if result.percentage >= 75 %}bg-success{% elif result.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" style="width:{{ result.percentage }}%"></div>
+              </div>
+              <span style="font-size:12px">{{ result.percentage }}%</span>
+            </div>
+          </td>
+          <td><span class="grade-badge grade-{{ result.grade }}">{{ result.grade }}</span></td>
+          <td><span class="badge {% if result.is_pass %}badge-present{% else %}badge-absent{% endif %}">{% if result.is_pass %}Pass{% else %}Fail{% endif %}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No results entered yet. <a href="{% url 'results:create' %}?exam_id={{ exam.pk }}">Enter results</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

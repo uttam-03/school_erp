@@ -1,0 +1,113 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'students:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">{{ page_title }}</h3>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Student Information</h6></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12"><h6 class="text-muted mb-2" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Account Details</h6></div>
+            <div class="col-md-6">
+              <label class="form-label">First Name *</label>
+              <input type="text" name="first_name" class="form-control" required
+                value="{% if student %}{{ student.user.first_name }}{% endif %}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last Name *</label>
+              <input type="text" name="last_name" class="form-control" required
+                value="{% if student %}{{ student.user.last_name }}{% endif %}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email Address *</label>
+              <input type="email" name="email" class="form-control" required
+                value="{% if student %}{{ student.user.email }}{% endif %}"
+                {% if action == 'edit' %}readonly{% endif %}>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone</label>
+              <input type="text" name="phone" class="form-control"
+                value="{% if student %}{{ student.user.phone }}{% endif %}">
+            </div>
+            {% if action == 'create' %}
+            <div class="col-md-6">
+              <label class="form-label">Admission Number *</label>
+              <input type="text" name="admission_number" class="form-control" required placeholder="e.g. STU2024001">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Password *</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+            {% endif %}
+
+            <div class="col-12 mt-3"><h6 class="text-muted mb-2" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Academic Details</h6></div>
+            <div class="col-md-6">
+              <label class="form-label">Class</label>
+              <select name="current_class" class="form-select">
+                <option value="">Select Class</option>
+                {% for cls in classes %}
+                <option value="{{ cls.pk }}" {% if student and student.current_class_id == cls.pk %}selected{% endif %}>{{ cls }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Blood Group</label>
+              <select name="blood_group" class="form-select">
+                <option value="">Select</option>
+                {% for bg in "A+,A-,B+,B-,AB+,AB-,O+,O-" %}{% endfor %}
+                <option value="A+" {% if student and student.blood_group == 'A+' %}selected{% endif %}>A+</option>
+                <option value="A-" {% if student and student.blood_group == 'A-' %}selected{% endif %}>A-</option>
+                <option value="B+" {% if student and student.blood_group == 'B+' %}selected{% endif %}>B+</option>
+                <option value="B-" {% if student and student.blood_group == 'B-' %}selected{% endif %}>B-</option>
+                <option value="AB+" {% if student and student.blood_group == 'AB+' %}selected{% endif %}>AB+</option>
+                <option value="AB-" {% if student and student.blood_group == 'AB-' %}selected{% endif %}>AB-</option>
+                <option value="O+" {% if student and student.blood_group == 'O+' %}selected{% endif %}>O+</option>
+                <option value="O-" {% if student and student.blood_group == 'O-' %}selected{% endif %}>O-</option>
+              </select>
+            </div>
+
+            <div class="col-12 mt-3"><h6 class="text-muted mb-2" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Parent / Guardian</h6></div>
+            <div class="col-md-6">
+              <label class="form-label">Parent Name *</label>
+              <input type="text" name="parent_name" class="form-control" required
+                value="{% if student %}{{ student.parent_name }}{% endif %}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Parent Phone *</label>
+              <input type="text" name="parent_phone" class="form-control" required
+                value="{% if student %}{{ student.parent_phone }}{% endif %}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Parent Email</label>
+              <input type="email" name="parent_email" class="form-control"
+                value="{% if student %}{{ student.parent_email }}{% endif %}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Emergency Contact</label>
+              <input type="text" name="emergency_contact" class="form-control"
+                value="{% if student %}{{ student.emergency_contact }}{% endif %}">
+            </div>
+
+            <div class="col-12 mt-4 d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2 me-1"></i>{% if action == 'create' %}Create Student{% else %}Update Student{% endif %}
+              </button>
+              <a href="{% url 'students:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

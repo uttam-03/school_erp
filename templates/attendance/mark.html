@@ -1,0 +1,186 @@
+{% extends 'shared/base.html' %}
+{% block title %}Mark Attendance{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h3>Mark Attendance</h3>
+    <p class="text-muted mb-0" style="font-size:14px">Select class and date, then mark each student</p>
+  </div>
+</div>
+
+<!-- Step 1: Select Class & Date -->
+<div class="card mb-4">
+  <div class="card-header"><h6 class="card-title">Select Class & Date</h6></div>
+  <div class="card-body">
+    <form method="get" id="loadForm" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Class *</label>
+        <select name="class_id" class="form-select" required onchange="this.form.submit()">
+          <option value="">-- Select Class --</option>
+          {% for cls in classes %}
+          <option value="{{ cls.pk }}" {% if selected_class and selected_class.pk == cls.pk %}selected{% endif %}>{{ cls }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Subject (optional)</label>
+        <select name="subject_id" class="form-select">
+          <option value="">-- General / All --</option>
+          {% for sub in subjects %}
+          <option value="{{ sub.pk }}">{{ sub.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Date *</label>
+        <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}" required>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-outline-primary w-100">
+          <i class="bi bi-search me-1"></i>Load Students
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if selected_class and students %}
+<!-- Step 2: Mark Attendance -->
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="class_id" value="{{ selected_class.pk }}">
+  <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+  <input type="hidden" name="subject_id" value="{{ request.GET.subject_id }}">
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="card-title">{{ selected_class }} — {{ selected_date|date:"d M Y" }} ({{ students|length }} students)</h6>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="markAll('present')">
+          <i class="bi bi-check-all me-1"></i>All Present
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAll('absent')">
+          <i class="bi bi-x-lg me-1"></i>All Absent
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:13px">
+          <thead class="table-light">
+            <tr>
+              <th style="width:40px">#</th>
+              <th>Student</th>
+              <th>Admission No.</th>
+              <th>Status</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in students %}
+            <tr>
+              <td class="text-muted">{{ forloop.counter }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <img src="{{ student.user.get_profile_image_url }}" class="rounded-circle" width="28" height="28" style="object-fit:cover" alt="">
+                  <span class="fw-500">{{ student.user.get_full_name }}</span>
+                </div>
+              </td>
+              <td><code style="font-size:12px">{{ student.admission_number }}</code></td>
+              <td>
+                <div class="d-flex gap-2 flex-wrap">
+                  {% for val, label, color in "present,Present,success|absent,Absent,danger|late,Late,warning|excused,Excused,secondary"|split_pipe %}
+                  {% endfor %}
+                  <label class="att-btn">
+                    <input type="radio" name="status_{{ student.id }}" value="present"
+                      {% if student.existing_status and student.existing_status.status == 'present' %}checked{% elif not student.existing_status %}checked{% endif %}
+                      class="d-none att-radio" data-color="success">
+                    <span class="badge bg-success-subtle text-success att-label">Present</span>
+                  </label>
+                  <label class="att-btn">
+                    <input type="radio" name="status_{{ student.id }}" value="absent"
+                      {% if student.existing_status and student.existing_status.status == 'absent' %}checked{% endif %}
+                      class="d-none att-radio" data-color="danger">
+                    <span class="badge bg-danger-subtle text-danger att-label">Absent</span>
+                  </label>
+                  <label class="att-btn">
+                    <input type="radio" name="status_{{ student.id }}" value="late"
+                      {% if student.existing_status and student.existing_status.status == 'late' %}checked{% endif %}
+                      class="d-none att-radio" data-color="warning">
+                    <span class="badge bg-warning-subtle text-warning-emphasis att-label">Late</span>
+                  </label>
+                  <label class="att-btn">
+                    <input type="radio" name="status_{{ student.id }}" value="excused"
+                      {% if student.existing_status and student.existing_status.status == 'excused' %}checked{% endif %}
+                      class="d-none att-radio" data-color="info">
+                    <span class="badge bg-info-subtle text-info att-label">Excused</span>
+                  </label>
+                </div>
+              </td>
+              <td>
+                <input type="text" name="remarks_{{ student.id }}" class="form-control form-control-sm"
+                  placeholder="Optional remark"
+                  value="{% if student.existing_status %}{{ student.existing_status.remarks }}{% endif %}"
+                  style="width:150px">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-clipboard2-check me-2"></i>Save Attendance
+      </button>
+      <a href="{% url 'attendance:index' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </div>
+  </div>
+</form>
+
+{% elif selected_class %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle me-2"></i>
+  No active students found in <strong>{{ selected_class }}</strong>.
+</div>
+{% else %}
+<div class="alert alert-info">
+  <i class="bi bi-info-circle me-2"></i>
+  Please select a class above to load students.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Highlight selected radio badge
+document.querySelectorAll('.att-radio').forEach(radio => {
+  const updateStyle = () => {
+    const group = document.querySelectorAll(`input[name="${radio.name}"]`);
+    group.forEach(r => {
+      const label = r.nextElementSibling;
+      label.style.opacity = r.checked ? '1' : '0.4';
+      label.style.outline = r.checked ? '2px solid currentColor' : 'none';
+      label.style.outlineOffset = '2px';
+    });
+  };
+  radio.addEventListener('change', updateStyle);
+  if (radio.checked) {
+    setTimeout(() => {
+      const label = radio.nextElementSibling;
+      label.style.opacity = '1';
+      label.style.outline = '2px solid currentColor';
+      label.style.outlineOffset = '2px';
+    }, 50);
+  }
+});
+
+function markAll(status) {
+  document.querySelectorAll(`.att-radio[value="${status}"]`).forEach(r => {
+    r.checked = true;
+    r.dispatchEvent(new Event('change'));
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'shared/base.html' %}
+{% block title %}Exams{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h3>Exams</h3>
+  {% if is_admin or is_teacher %}
+  <a href="{% url 'exams:create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Schedule Exam
+  </a>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  {% for exam in exams %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="badge mb-1" style="background:rgba(79,70,229,0.1);color:var(--primary)">{{ exam.get_exam_type_display }}</span>
+            <h6 class="mb-1 fw-600">{{ exam.name }}</h6>
+            <div style="font-size:13px;color:var(--text-muted)">{{ exam.subject.name }} · {{ exam.academic_class }}</div>
+          </div>
+          <div style="width:44px;height:44px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:20px">
+            📝
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">DATE</div>
+            <div style="font-size:13px;font-weight:500">{{ exam.exam_date|date:"M d, Y" }}</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">TIME</div>
+            <div style="font-size:13px;font-weight:500">{{ exam.start_time|time:"H:i" }} – {{ exam.end_time|time:"H:i" }}</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">TOTAL MARKS</div>
+            <div style="font-size:13px;font-weight:500">{{ exam.total_marks }}</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">PASSING</div>
+            <div style="font-size:13px;font-weight:500">{{ exam.passing_marks }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <span style="font-size:12px;color:var(--text-muted)">{{ exam.results.count }} results</span>
+          <div class="d-flex gap-1">
+            <a href="{% url 'exams:detail' exam.pk %}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye me-1"></i>View
+            </a>
+            {% if is_admin or is_teacher %}
+            <a href="{% url 'results:create' %}?exam_id={{ exam.pk }}" class="btn btn-sm btn-primary">
+              <i class="bi bi-plus me-1"></i>Results
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-journal-richtext fs-1 d-block mb-2"></i>
+        No exams scheduled yet.
+        {% if is_admin or is_teacher %}
+        <div class="mt-2"><a href="{% url 'exams:create' %}" class="btn btn-primary btn-sm">Schedule First Exam</a></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

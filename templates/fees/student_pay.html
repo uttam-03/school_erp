@@ -1,0 +1,204 @@
+{% extends 'shared/base.html' %}
+{% block title %}Pay Fee — {{ record.fee_structure.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h3>Pay Fee</h3>
+    <p class="text-muted mb-0" style="font-size:14px">{{ record.fee_structure.name }}</p>
+  </div>
+  <a href="{% url 'fees:index' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <!-- Fee Breakdown -->
+    <div class="card mb-4">
+      <div class="card-header"><h6 class="card-title">Fee Details</h6></div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <table class="table table-sm mb-0" style="font-size:13px">
+              <tr><td class="text-muted">Structure</td><td class="fw-600">{{ record.fee_structure.name }}</td></tr>
+              <tr><td class="text-muted">Academic Year</td><td class="fw-600">{{ record.fee_structure.academic_year }}</td></tr>
+              <tr><td class="text-muted">Due Date</td><td class="fw-600 {% if record.fee_structure.due_date < today %}text-danger{% endif %}">{{ record.fee_structure.due_date|date:"d M Y" }}</td></tr>
+              <tr><td class="text-muted">Status</td><td>
+                <span class="badge bg-{% if record.status == 'paid' %}success{% elif record.status == 'partial' %}warning text-dark{% else %}danger{% endif %}">
+                  {{ record.get_status_display }}
+                </span>
+              </td></tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 rounded-3" style="background:var(--surface-2)">
+              <div class="d-flex justify-content-between mb-2" style="font-size:13px">
+                <span class="text-muted">Tuition Fee</span><span>₹{{ record.fee_structure.tuition_fee|floatformat:0 }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2" style="font-size:13px">
+                <span class="text-muted">Transport Fee</span><span>₹{{ record.fee_structure.transport_fee|floatformat:0 }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2" style="font-size:13px">
+                <span class="text-muted">Library Fee</span><span>₹{{ record.fee_structure.library_fee|floatformat:0 }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2" style="font-size:13px">
+                <span class="text-muted">Lab Fee</span><span>₹{{ record.fee_structure.lab_fee|floatformat:0 }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2" style="font-size:13px">
+                <span class="text-muted">Misc Fee</span><span>₹{{ record.fee_structure.misc_fee|floatformat:0 }}</span>
+              </div>
+              {% if record.discount > 0 %}
+              <div class="d-flex justify-content-between mb-2 text-success" style="font-size:13px">
+                <span>Discount</span><span>- ₹{{ record.discount|floatformat:0 }}</span>
+              </div>
+              {% endif %}
+              <hr class="my-2">
+              <div class="d-flex justify-content-between fw-700" style="font-size:15px">
+                <span>Net Payable</span><span class="text-primary">₹{{ record.net_amount|floatformat:0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Form -->
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Make Payment</h6></div>
+      <div class="card-body">
+        {% if messages %}
+          {% for m in messages %}
+          <div class="alert alert-danger py-2 mb-3"><i class="bi bi-exclamation-triangle me-2"></i>{{ m }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post" id="payForm">
+          {% csrf_token %}
+
+          <!-- Payment Method Selector -->
+          <div class="mb-4">
+            <label class="form-label fw-600">Select Payment Method</label>
+            <div class="row g-2">
+              {% for val, icon, label, color in methods %}
+              {% endfor %}
+              <div class="col-6 col-md-3">
+                <label class="pay-method-card w-100" style="cursor:pointer">
+                  <input type="radio" name="payment_method" value="upi" class="d-none pay-radio" checked>
+                  <div class="card text-center p-3 pay-option" style="border:2px solid var(--primary)">
+                    <i class="bi bi-phone-fill fs-4 text-primary mb-1"></i>
+                    <div style="font-size:13px;font-weight:600">UPI</div>
+                  </div>
+                </label>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="pay-method-card w-100" style="cursor:pointer">
+                  <input type="radio" name="payment_method" value="online" class="d-none pay-radio">
+                  <div class="card text-center p-3 pay-option" style="border:2px solid var(--border)">
+                    <i class="bi bi-bank fs-4 text-success mb-1"></i>
+                    <div style="font-size:13px;font-weight:600">Net Banking</div>
+                  </div>
+                </label>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="pay-method-card w-100" style="cursor:pointer">
+                  <input type="radio" name="payment_method" value="card" class="d-none pay-radio">
+                  <div class="card text-center p-3 pay-option" style="border:2px solid var(--border)">
+                    <i class="bi bi-credit-card fs-4 text-info mb-1"></i>
+                    <div style="font-size:13px;font-weight:600">Card</div>
+                  </div>
+                </label>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="pay-method-card w-100" style="cursor:pointer">
+                  <input type="radio" name="payment_method" value="cash" class="d-none pay-radio">
+                  <div class="card text-center p-3 pay-option" style="border:2px solid var(--border)">
+                    <i class="bi bi-cash-coin fs-4 text-warning mb-1"></i>
+                    <div style="font-size:13px;font-weight:600">Cash</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <!-- Amount -->
+            <div class="col-md-6">
+              <label class="form-label fw-600">Amount to Pay (₹) *</label>
+              <div class="input-group">
+                <span class="input-group-text fw-600">₹</span>
+                <input type="number" name="amount_paid" class="form-control form-control-lg"
+                  value="{{ record.net_amount|floatformat:0 }}"
+                  min="1" max="{{ record.net_amount|floatformat:0 }}"
+                  step="1" required>
+              </div>
+              <div class="form-text">Net payable: ₹{{ record.net_amount|floatformat:0 }}</div>
+            </div>
+
+            <!-- Transaction ID -->
+            <div class="col-md-6" id="txnField">
+              <label class="form-label fw-600">Transaction / Reference ID *</label>
+              <input type="text" name="transaction_id" class="form-control form-control-lg"
+                placeholder="e.g. UPI12345678" id="txnInput">
+              <div class="form-text">Required for UPI / Online / Card payments</div>
+            </div>
+          </div>
+
+          <!-- UPI QR Hint -->
+          <div class="mt-4 p-3 rounded-3" style="background:rgba(99,102,241,0.06);border:1px dashed rgba(99,102,241,0.3)" id="upiInfo">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-info-circle-fill text-primary"></i>
+              <span class="fw-600" style="font-size:13px">How to pay via UPI</span>
+            </div>
+            <ol style="font-size:13px;color:var(--text-muted);margin-bottom:0;padding-left:20px">
+              <li>Open any UPI app (GPay, PhonePe, Paytm, BHIM)</li>
+              <li>Transfer the amount to school's UPI ID or scan QR</li>
+              <li>Copy the <strong>Transaction ID / UTR</strong> from the success screen</li>
+              <li>Enter it above and submit</li>
+            </ol>
+          </div>
+
+          <div class="mt-4 d-flex gap-3">
+            <button type="submit" class="btn btn-primary btn-lg px-5 fw-600">
+              <i class="bi bi-check2-circle me-2"></i>Submit Payment
+            </button>
+            <a href="{% url 'fees:index' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Payment method card selector
+document.querySelectorAll('.pay-radio').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.querySelectorAll('.pay-option').forEach(card => {
+      card.style.borderColor = 'var(--border)';
+    });
+    radio.closest('.pay-method-card').querySelector('.pay-option').style.borderColor = 'var(--primary)';
+
+    // Show/hide txn field and UPI info
+    const method = radio.value;
+    const txnField = document.getElementById('txnField');
+    const upiInfo = document.getElementById('upiInfo');
+    const txnInput = document.getElementById('txnInput');
+
+    if (method === 'cash') {
+      txnField.style.opacity = '0.4';
+      txnInput.removeAttribute('required');
+      upiInfo.style.display = 'none';
+    } else {
+      txnField.style.opacity = '1';
+      txnInput.setAttribute('required', true);
+      upiInfo.style.display = method === 'upi' ? 'block' : 'none';
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ material.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'materials:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <div><h3 class="mb-0">{{ material.title }}</h3><small class="text-muted">{{ material.subject.name }} · {{ material.academic_class }}</small></div>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-body">
+        {% if material.description %}<p style="font-size:14px;line-height:1.7">{{ material.description }}</p>{% endif %}
+        <div class="d-flex gap-3 mt-3">
+          {% if material.file %}<a href="{{ material.file.url }}" class="btn btn-primary" target="_blank"><i class="bi bi-download me-2"></i>Download File</a>{% endif %}
+          {% if material.external_link %}<a href="{{ material.external_link }}" class="btn btn-outline-primary" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>Open Link</a>{% endif %}
+        </div>
+        <div class="mt-4 text-muted" style="font-size:12px">
+          Uploaded by {{ material.uploaded_by.user.get_full_name }} on {{ material.created_at|date:"M d, Y" }} · {{ material.download_count }} downloads
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

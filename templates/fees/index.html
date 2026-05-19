@@ -1,0 +1,61 @@
+{% extends 'shared/base.html' %}
+{% block title %}Fee Management{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h3>Fee Management</h3></div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'fees:collect' %}" class="btn btn-success"><i class="bi bi-cash-coin me-1"></i>Collect Payment</a>
+    <a href="{% url 'fees:create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>New Fee Structure</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="stat-card stat-success"><div class="stat-icon"><i class="bi bi-cash-stack"></i></div><div class="stat-info"><div class="stat-label">Total Collected</div><div class="stat-value">₹{{ total_collected|floatformat:0 }}</div></div></div></div>
+  <div class="col-md-4"><div class="stat-card stat-warning"><div class="stat-icon"><i class="bi bi-hourglass-split"></i></div><div class="stat-info"><div class="stat-label">Pending Amount</div><div class="stat-value">₹{{ total_pending|floatformat:0 }}</div></div></div></div>
+  <div class="col-md-4"><div class="stat-card stat-primary"><div class="stat-icon"><i class="bi bi-list-check"></i></div><div class="stat-info"><div class="stat-label">Fee Structures</div><div class="stat-value">{{ structures|length }}</div></div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Fee Structures</h6></div>
+      <div class="card-body p-0">
+        {% for s in structures %}
+        <div class="d-flex align-items-center justify-content-between p-3" style="border-bottom:1px solid var(--border)">
+          <div>
+            <div class="fw-600" style="font-size:14px">{{ s.name }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">{{ s.academic_class }} · {{ s.academic_year }}</div>
+            <div style="font-size:13px;color:var(--success)" class="fw-600 mt-1">₹{{ s.total_amount }}</div>
+          </div>
+          <div class="d-flex gap-1">
+            <a href="{% url 'fees:detail' s.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'fees:edit' s.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+          </div>
+        </div>
+        {% empty %}<div class="p-4 text-center text-muted">No fee structures created.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Recent Payments</h6></div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Receipt</th><th>Student</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for p in recent_payments %}
+            <tr>
+              <td><code style="font-size:12px">#{{ p.receipt_number }}</code></td>
+              <td class="fw-500" style="font-size:13px">{{ p.student.user.get_full_name }}</td>
+              <td class="fw-600 text-success">₹{{ p.amount_paid }}</td>
+              <td><span class="badge" style="background:rgba(59,130,246,0.1);color:var(--info);font-size:11px">{{ p.get_payment_method_display }}</span></td>
+              <td style="font-size:12px;color:var(--text-muted)">{{ p.payment_date|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No payments recorded.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

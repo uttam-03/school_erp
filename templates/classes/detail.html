@@ -1,0 +1,75 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ cls }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'classes:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <div><h3 class="mb-0">{{ cls }}</h3><small class="text-muted">{{ cls.get_student_count }} / {{ cls.max_students }} students enrolled</small></div>
+  </div>
+  {% if is_admin %}
+  <div class="d-flex gap-2">
+    <a href="{% url 'classes:edit' cls.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+    <a href="{% url 'students:create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Add Student</a>
+  </div>
+  {% endif %}
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card stat-primary"><div class="stat-icon"><i class="bi bi-people-fill"></i></div><div class="stat-info"><div class="stat-label">Students</div><div class="stat-value">{{ cls.get_student_count }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card stat-cyan"><div class="stat-icon"><i class="bi bi-book-fill"></i></div><div class="stat-info"><div class="stat-label">Subjects</div><div class="stat-value">{{ cls.subjects.count }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card stat-success"><div class="stat-icon"><i class="bi bi-person-workspace"></i></div><div class="stat-info"><div class="stat-label">Teachers</div><div class="stat-value">{{ cls.teachers.count }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card stat-warning"><div class="stat-icon"><i class="bi bi-journal-richtext"></i></div><div class="stat-info"><div class="stat-label">Exams</div><div class="stat-value">{{ cls.exams.count }}</div></div></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Enrolled Students</h6></div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Student</th><th>Admission No.</th><th>Phone</th><th>Attendance</th></tr></thead>
+          <tbody>
+            {% for student in students %}
+            <tr>
+              <td><div class="d-flex align-items-center gap-2"><img src="{{ student.user.get_profile_image_url }}" class="avatar-sm avatar" alt=""><a href="{% url 'students:detail' student.pk %}" class="fw-500 text-decoration-none" style="font-size:13px">{{ student.user.get_full_name }}</a></div></td>
+              <td><code style="font-size:12px">{{ student.admission_number }}</code></td>
+              <td style="font-size:13px">{{ student.user.phone|default:"—" }}</td>
+              <td>
+                {% with pct=student.get_attendance_percentage %}
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress" style="width:50px;height:4px"><div class="progress-bar {% if pct >= 75 %}bg-success{% elif pct >= 50 %}bg-warning{% else %}bg-danger{% endif %}" style="width:{{ pct }}%"></div></div>
+                  <span style="font-size:12px">{{ pct }}%</span>
+                </div>
+                {% endwith %}
+              </td>
+            </tr>
+            {% empty %}<tr><td colspan="4" class="text-center text-muted py-4">No students enrolled.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="card-title">Subjects</h6></div>
+      <div class="card-body p-0">
+        {% for sub in cls.subjects.all %}
+        <div class="d-flex align-items-center justify-content-between p-3" style="border-bottom:1px solid var(--border)">
+          <div><div class="fw-500" style="font-size:13px">{{ sub.name }}</div><div style="font-size:11px;color:var(--text-muted)">Code: {{ sub.code }}</div></div>
+          <span style="font-size:12px;color:var(--text-muted)">{{ sub.max_marks }} marks</span>
+        </div>
+        {% empty %}<div class="p-3 text-center text-muted" style="font-size:13px">No subjects assigned.</div>{% endfor %}
+      </div>
+    </div>
+    {% if cls.class_teacher %}
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Class Teacher</h6></div>
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+          <img src="{{ cls.class_teacher.user.get_profile_image_url }}" class="avatar" alt="">
+          <div><div class="fw-600">{{ cls.class_teacher.user.get_full_name }}</div><div style="font-size:12px;color:var(--text-muted)">{{ cls.class_teacher.specialization|default:cls.class_teacher.qualification }}</div></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

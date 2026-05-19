@@ -1,0 +1,47 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'classes:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">{{ page_title }}</h3>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Class Information</h6></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Class Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Grade 10" value="{% if cls %}{{ cls.name }}{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Section *</label><input type="text" name="section" class="form-control" required placeholder="e.g. A" value="{% if cls %}{{ cls.section }}{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Academic Year *</label><input type="text" name="academic_year" class="form-control" required placeholder="e.g. 2024-25" value="{% if cls %}{{ cls.academic_year }}{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Room Number</label><input type="text" name="room_number" class="form-control" placeholder="e.g. 101" value="{% if cls %}{{ cls.room_number }}{% endif %}"></div>
+            <div class="col-md-4"><label class="form-label">Max Students</label><input type="number" name="max_students" class="form-control" value="{% if cls %}{{ cls.max_students }}{% else %}40{% endif %}"></div>
+            <div class="col-md-4">
+              <label class="form-label">Class Teacher</label>
+              <select name="class_teacher" class="form-select">
+                <option value="">Select Teacher</option>
+                {% for t in teachers %}<option value="{{ t.pk }}" {% if cls and cls.class_teacher_id == t.pk %}selected{% endif %}>{{ t.user.get_full_name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Subjects</label>
+              <select name="subjects" class="form-select" multiple size="6">
+                {% for sub in subjects %}<option value="{{ sub.pk }}" {% if cls and sub in cls.subjects.all %}selected{% endif %}>{{ sub.name }} ({{ sub.code }})</option>{% endfor %}
+              </select>
+              <div class="form-text">Hold Ctrl/Cmd to select multiple subjects</div>
+            </div>
+            <div class="col-12 d-flex gap-2 mt-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{% if action == 'create' %}Create Class{% else %}Update Class{% endif %}</button>
+              <a href="{% url 'classes:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

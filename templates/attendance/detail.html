@@ -1,0 +1,17 @@
+{% extends 'shared/base.html' %}
+{% block title %}Attendance Detail{% endblock %}
+{% block content %}
+<div class="page-header">
+  <a href="{% url 'attendance:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+  <h3 class="mb-0">Attendance Record</h3>
+</div>
+<div class="row justify-content-center"><div class="col-lg-5">
+<div class="card"><div class="card-body">
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Student</div><div class="fw-600 mt-1">{{ record.student.user.get_full_name }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Date</div><div class="fw-600 mt-1">{{ record.date|date:"M d, Y" }}</div></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Status</div><span class="badge badge-{{ record.status }}">{{ record.get_status_display }}</span></div>
+  <div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Subject</div><div class="fw-600 mt-1">{{ record.subject.name|default:"General" }}</div></div>
+  {% if record.remarks %}<div class="mb-3"><div class="text-muted" style="font-size:11px;text-transform:uppercase">Remarks</div><div class="mt-1">{{ record.remarks }}</div></div>{% endif %}
+</div></div>
+</div></div>
+{% endblock %}

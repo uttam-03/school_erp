@@ -1,0 +1,55 @@
+{% extends 'shared/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'exams:index' %}" class="btn btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <h3 class="mb-0">{{ page_title }}</h3>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><h6 class="card-title">Exam Information</h6></div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label">Exam Name *</label><input type="text" name="name" class="form-control" required value="{% if exam %}{{ exam.name }}{% endif %}" placeholder="e.g. Mid Term Examination 2024"></div>
+            <div class="col-md-6">
+              <label class="form-label">Exam Type *</label>
+              <select name="exam_type" class="form-select" required>
+                {% for val, label in exam_types %}<option value="{{ val }}" {% if exam and exam.exam_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Class *</label>
+              <select name="academic_class" class="form-select" required>
+                <option value="">Select Class</option>
+                {% for cls in classes %}<option value="{{ cls.pk }}" {% if exam and exam.academic_class_id == cls.pk %}selected{% endif %}>{{ cls }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Subject *</label>
+              <select name="subject" class="form-select" required>
+                <option value="">Select Subject</option>
+                {% for sub in subjects %}<option value="{{ sub.pk }}" {% if exam and exam.subject_id == sub.pk %}selected{% endif %}>{{ sub.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Exam Date *</label><input type="date" name="exam_date" class="form-control" required value="{% if exam %}{{ exam.exam_date|date:'Y-m-d' }}{% endif %}"></div>
+            <div class="col-md-3"><label class="form-label">Start Time *</label><input type="time" name="start_time" class="form-control" required value="{% if exam %}{{ exam.start_time|time:'H:i' }}{% endif %}"></div>
+            <div class="col-md-3"><label class="form-label">End Time *</label><input type="time" name="end_time" class="form-control" required value="{% if exam %}{{ exam.end_time|time:'H:i' }}{% endif %}"></div>
+            <div class="col-md-3"><label class="form-label">Total Marks</label><input type="number" name="total_marks" class="form-control" value="{% if exam %}{{ exam.total_marks }}{% else %}100{% endif %}"></div>
+            <div class="col-md-3"><label class="form-label">Passing Marks</label><input type="number" name="passing_marks" class="form-control" value="{% if exam %}{{ exam.passing_marks }}{% else %}35{% endif %}"></div>
+            <div class="col-12"><label class="form-label">Instructions</label><textarea name="instructions" class="form-control" rows="3" placeholder="Exam instructions for students...">{% if exam %}{{ exam.instructions }}{% endif %}</textarea></div>
+            <div class="col-12 d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{% if action == 'create' %}Schedule Exam{% else %}Update Exam{% endif %}</button>
+              <a href="{% url 'exams:index' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
